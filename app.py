@@ -34,7 +34,7 @@ with col3:
 
 
 # gráfico 1: retención en el año seleccionado
-st.subheader(f"📈 Retención por Departamento - {year} / {term}")
+st.subheader(f"🎓 Estudiantes Matriculados por Departamento  - {year} / {term}")
 
 dept_cols = ['Engineering Enrolled', 'Business Enrolled', 'Arts Enrolled', 'Science Enrolled']
 
@@ -57,16 +57,28 @@ ax2.set_ylabel("Tasa de Retención (%)")
 ax2.set_title(f"Tendencia de Retención - Periodo {term}")
 st.pyplot(fig2)
 
-# gráfico 3: satisfacción promedio (diferencia entre periodos)
-st.subheader(" Comparación de Satisfacción entre Spring y Fall")
+# gráfico 3: circular por departamento
+st.subheader(f"📊 Distribución Porcentual de Matrícula por Departamento - {year} / {term}")
 
-satisfaction_compare = df[df['Year'] == year].groupby('Term')['Student Satisfaction (%)'].mean()
+dept_enroll = [
+    filtered_df['Engineering Enrolled'].sum(),
+    filtered_df['Business Enrolled'].sum(),
+    filtered_df['Arts Enrolled'].sum(),
+    filtered_df['Science Enrolled'].sum()
+]
+
+dept_labels = ['Engineering', 'Business', 'Arts', 'Science']
 
 fig3, ax3 = plt.subplots()
-ax3.bar(satisfaction_compare.index, satisfaction_compare.values, color=['skyblue', 'salmon'])
-ax3.set_xlabel("Periodo")
-ax3.set_ylabel("Satisfacción (%)")
-ax3.set_title(f"Comparación de Satisfacción en {year}")
-st.pyplot(fig3)
+ax3.pie(
+    dept_enroll,
+    labels=dept_labels,
+    autopct='%1.1f%%',
+    startangle=90,
+    colors=['#4e79a7', '#f28e2b', '#59a14f', '#8b3fc6']
+)
+ax3.set_title("Distribución Porcentual de Matrícula")
+ax3.axis('equal')  # Hace que el gráfico sea circular y no ovalado
 
-st.caption("Todos los gráficos e indicadores se actualizan dinámicamente según el año y periodo seleccionados.")
+# Mostrar gráfico en Streamlit
+st.pyplot(fig3)
