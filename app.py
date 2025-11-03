@@ -2,16 +2,12 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# Configuración Inicial
 st.set_page_config(page_title="Dashboard Universitario", layout="wide")
-
-# Cargar datos
-df = pd.read_csv("university_student_data.csv")
-
-
 st.title("📊 Dashboard Analítico de Estudiantes Universitarios")
 
-# Filtros Interactivos
+df = pd.read_csv("university_student_data.csv")
+
+# filtros interactivos
 col1, col2 = st.columns(2)
 
 with col1:
@@ -20,57 +16,57 @@ with col1:
 with col2:
     term = st.selectbox("Seleccionar Periodo:", sorted(df['Term'].unique()))
 
-# Filtrar los datos según selección
+# Filtrar los datos según la selección
 filtered_df = df[(df['Year'] == year) & (df['Term'] == term)]
 
-# Métricas Clave
+
+# métricas clave
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.metric("Estudiantes Matriculados", int(filtered_df['Enrolled'].sum()))
 
 with col2:
-    st.metric("Tasa de Retención (%)", float(filtered_df['Retention Rate (%)'].mean()))
+    st.metric("Tasa de Retención (%)", round(filtered_df['Retention Rate (%)'].mean(), 1))
 
 with col3:
-    st.metric("Satisfacción (%)", float(filtered_df['Student Satisfaction (%)'].mean()))
+    st.metric("Satisfacción (%)", round(filtered_df['Student Satisfaction (%)'].mean(), 1))
 
-# GRÁFICO 1: TENDENCIA DE RETENCIÓN (DINÁMICO)
 
-st.subheader("📈 Tendencia de Retención a lo Largo del Tiempo")
+# gráfico 1: retención en el año seleccionado
+st.subheader(f"📈 Retención por Departamento - {year} / {term}")
 
-retention_trend = df.groupby('Year')['Retention Rate (%)'].mean()
+dept_cols = ['Engineering Enrolled', 'Business Enrolled', 'Arts Enrolled', 'Science Enrolled']
 
 fig1, ax1 = plt.subplots()
-ax1.plot(retention_trend.index, retention_trend.values, marker='o', color='blue')
-ax1.set_xlabel("Año")
-ax1.set_ylabel("Tasa de Retención (%)")
-ax1.set_title("Tendencia de Retención")
+ax1.bar(dept_cols, filtered_df[dept_cols].values[0], color=['royalblue', 'orange', 'green', 'purple'])
+ax1.set_ylabel("Estudiantes Matriculados")
+ax1.set_title("Distribución de Matrícula por Departamento")
 st.pyplot(fig1)
 
-# GRÁFICO 2: SATISFACCIÓN PROMEDIO POR AÑO (DINÁMICO)
-st.subheader("Satisfacción Promedio por Año")
+# gráfico 2: tendencia de retención en los años
+st.subheader("📊 Tendencia de Retención en el Tiempo")
 
-satisfaction_trend = df.groupby('Year')['Student Satisfaction (%)'].mean()
+# Mostrar tendencia solo del periodo seleccionado (Spring/Fall)
+retention_trend = df[df['Term'] == term].groupby('Year')['Retention Rate (%)'].mean()
 
 fig2, ax2 = plt.subplots()
-ax2.bar(satisfaction_trend.index, satisfaction_trend.values, color='orange')
+ax2.plot(retention_trend.index, retention_trend.values, marker='o', color='blue')
 ax2.set_xlabel("Año")
-ax2.set_ylabel("Satisfacción (%)")
-ax2.set_title("Satisfacción Promedio por Año")
+ax2.set_ylabel("Tasa de Retención (%)")
+ax2.set_title(f"Tendencia de Retención - Periodo {term}")
 st.pyplot(fig2)
 
-# GRÁFICO 3: COMPARACIÓN ENTRE SPRING Y FALL (DINÁMICO)
-st.subheader(" Comparación entre Periodos Spring y Fall")
+# gráfico 3: satisfacción promedio (diferencia entre periodos)
+st.subheader(" Comparación de Satisfacción entre Spring y Fall")
 
-term_comparison = df[df['Year'] == year].groupby('Term')[['Retention Rate (%)', 'Student Satisfaction (%)']].mean()
+satisfaction_compare = df[df['Year'] == year].groupby('Term')['Student Satisfaction (%)'].mean()
 
 fig3, ax3 = plt.subplots()
-term_comparison.plot(kind='bar', ax=ax3, color=['green', 'purple'])
-ax3.set_xlabel("Periodo Académico")
-ax3.set_ylabel("Porcentaje (%)")
-ax3.set_title(f"Comparación entre Spring y Fall - Año {year}")
-ax3.grid(axis='y')
+ax3.bar(satisfaction_compare.index, satisfaction_compare.values, color=['skyblue', 'salmon'])
+ax3.set_xlabel("Periodo")
+ax3.set_ylabel("Satisfacción (%)")
+ax3.set_title(f"Comparación de Satisfacción en {year}")
 st.pyplot(fig3)
 
-st.caption("Todos los indicadores y gráficos se actualizan dinámicamente según el año y el periodo seleccionados.")
+st.caption("Todos los gráficos e indicadores se actualizan dinámicamente según el año y periodo seleccionados.")
